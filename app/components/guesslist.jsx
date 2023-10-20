@@ -1,9 +1,14 @@
 "use client"
 import React, { useState } from 'react';
 import {wordState} from '../state/wordstate';
-import {useRecoilState, useRecoilValue} from 'recoil';
+import {useRecoilValue} from 'recoil';
+
+const controlWords = ['SALSA', 'PEELS', 'PILLS', 'POOLS', 'PULLS'];
 
 const GuessList = () => {
+  const [win, setWin] = useState(false);
+  const [score, setScore] = useState(0);
+  const [numGuesses, setNumGuesses] = useState(0);
   const [guesses, setGuesses] = useState([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -21,15 +26,21 @@ const GuessList = () => {
 
   const handleGuessSubmit = () => {
     if (currentGuess.length === 5) {
-      setGuesses([...guesses, currentGuess]);
+      if (currentGuess === word) {
+        setWin(true);
+        setScore(numGuesses + 1);
+      } else {
+        setGuesses([...guesses, currentGuess]);
+      }
       setCurrentGuess('');
+      setNumGuesses(numGuesses + 1);
     } else {
       setErrorMessage('Word must contain exactly 5 letters');
     }
   };
 
-  const countSharedLetters = (guess, word) => {
-    const guessLetters = guess.split('');
+  const countSharedLetters = (testWord, word) => {
+    const guessLetters = testWord.split('');
     const wordLetters = word.split('');
     let count = 0;
   
@@ -44,12 +55,37 @@ const GuessList = () => {
     return count;
   };
 
+  const renderControlWords = (word) => {
+    return controlWords.map((testWord) => {
+      const sharedLetters = countSharedLetters(testWord, word);
+      return (
+        <p key={testWord}>
+          {`${testWord} (${sharedLetters} shared letters)`}
+        </p>
+      );
+    });
+  };
+
   return (
+  
     <div style={{ width: '50%', height: '100vh', boxSizing: 'border-box', float: 'right' }}>
       <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '8px' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '8px' }}>
+          Control Words:
+        </h2>
+        {renderControlWords(word)}
+        
+        <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '8px' }}>
           Guessed Words:
         </h2>
+        {win && (
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '8px' }}>
+              You Win!
+            </h2>
+            <p>Your score: {score}</p>
+          </div>
+        )}
         <input
           type="text"
           style={{
